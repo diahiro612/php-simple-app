@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+
+    environment {
+        COMPOSER_ALLOW_SUPERUSER = 1
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git 'https://github.com/diahiro612/php-simple-app.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'curl -sS https://getcomposer.org/installer | php'
+                sh 'php composer.phar install'
+            }
+        }
+
+        stage('Run Unit Test') {
+            steps {
+                sh './vendor/bin/phpunit tests'
+            }
+        }
+
+        stage('Docker Build & Deploy') {
+            steps {
+                sh 'docker build -t php-simple-app .'
+                sh 'docker run -d -p 8081:80 --name php-simple-app php-simple-app'
+            }
+        }
+    }
+}
